@@ -417,40 +417,6 @@ function isEditingRow(rowId: string) {
   return editingRowId.value === rowId
 }
 
-// 更新疵点数据的辅助方法
-const updateDefectCorner = (index: number, value: Corner) => {
-  const newDefects = [...localSettings.value.defects]
-  if (newDefects[index]) {
-    newDefects[index].corner = value
-    localSettings.value = {
-      ...localSettings.value,
-      defects: newDefects
-    }
-  }
-}
-
-const updateDefectX = (index: number, value: number) => {
-  const newDefects = [...localSettings.value.defects]
-  if (newDefects[index]) {
-    newDefects[index].x = value
-    localSettings.value = {
-      ...localSettings.value,
-      defects: newDefects
-    }
-  }
-}
-
-const updateDefectY = (index: number, value: number) => {
-  const newDefects = [...localSettings.value.defects]
-  if (newDefects[index]) {
-    newDefects[index].y = value
-    localSettings.value = {
-      ...localSettings.value,
-      defects: newDefects
-    }
-  }
-}
-
 // 同步颜色变化
 watch(color, (newColor) => {
   localSettings.value = {
