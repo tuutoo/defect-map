@@ -8,7 +8,7 @@
         <h3 class="text-lg font-semibold">长方形尺寸</h3>
       </template>
 
-      <div class="space-y-4">
+      <div class="flex gap-4">
         <UFormGroup label="宽度 (px)">
           <UInput
             v-model.number="localSettings.rectWidth"
@@ -52,22 +52,22 @@
     <!-- 疵点设置 -->
     <UCard>
       <template #header>
-        <h3 class="text-lg font-semibold">疵点颜色</h3>
+        <h3 class="text-lg font-semibold">疵点设置</h3>
       </template>
 
-      <div class="space-y-4">
+      <div class="flex gap-4">
         <UFormGroup label="疵点颜色">
-        <UPopover>
-          <UButton :label="color" color="neutral" variant="outline">
-            <template #leading>
-              <span :style="chip" class="size-3 rounded-full" />
-            </template>
-          </UButton>
+          <UPopover>
+            <UButton :label="color" color="neutral" variant="outline">
+              <template #leading>
+                <span :style="chip" class="size-3 rounded-full" />
+              </template>
+            </UButton>
 
-          <template #content>
-            <UColorPicker v-model="color" class="p-2" />
-          </template>
-        </UPopover>
+            <template #content>
+              <UColorPicker v-model="color" class="p-2" />
+            </template>
+          </UPopover>
         </UFormGroup>
 
         <UFormGroup label="疵点大小 (半径px)">
