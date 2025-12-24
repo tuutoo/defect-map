@@ -4,26 +4,8 @@
 
     <!-- 可折叠的参数设置 -->
     <UAccordion
-      :items="[
-        {
-          label: '画布尺寸',
-          icon: 'i-lucide-layout-template',
-          slot: 'canvas',
-          defaultOpen: false
-        },
-        {
-          label: '长方形尺寸',
-          icon: 'i-lucide-square',
-          slot: 'rect',
-          defaultOpen: false
-        },
-        {
-          label: '疵点设置',
-          icon: 'i-lucide-palette',
-          slot: 'defect',
-          defaultOpen: false
-        }
-      ]"
+      type="multiple"
+      :items="accordionItems"
     >
       <template #canvas>
         <div class="p-4 space-y-4">
@@ -233,7 +215,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn, TableRow } from '@nuxt/ui'
+import type { TableColumn, TableRow, AccordionItem } from '@nuxt/ui'
 
 type Corner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 
@@ -276,6 +258,27 @@ const localSettings = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
+
+const accordionItems = ref<AccordionItem[]>([
+  {
+    label: '画布尺寸',
+    icon: 'i-lucide-layout-template',
+    slot: 'canvas',
+    defaultOpen: false
+  },
+  {
+    label: '长方形尺寸',
+    icon: 'i-lucide-square',
+    slot: 'rect',
+    defaultOpen: false
+  },
+  {
+    label: '疵点设置',
+    icon: 'i-lucide-palette',
+    slot: 'defect',
+    defaultOpen: false
+  }
+])
 
 const color = ref('#FF0000')
 const chip = computed(() => ({ backgroundColor: color.value }))
