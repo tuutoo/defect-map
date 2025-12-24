@@ -15,7 +15,7 @@
                 v-model.number="tempCanvasWidth"
                 type="number"
                 :min="0.1"
-                :max="100"
+                :max="localSettings.canvasWidth"
                 :step="0.01"
                 @blur="validateCanvasWidth"
               />
@@ -26,7 +26,7 @@
                 v-model.number="tempCanvasHeight"
                 type="number"
                 :min="0.1"
-                :max="100"
+                :max="localSettings.canvasHeight"
                 :step="0.01"
                 @blur="validateCanvasHeight"
               />
