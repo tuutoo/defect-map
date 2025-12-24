@@ -28,14 +28,17 @@
 </template>
 
 <script setup lang="ts">
+type Corner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+
 interface Defect {
-  x: number
-  y: number
+  x: number // 厘米
+  y: number // 厘米
+  corner: Corner
 }
 
 interface Settings {
-  rectWidth: number
-  rectHeight: number
+  rectWidth: number // 米
+  rectHeight: number // 米
   canvasExpansion: number
   defectColor: string
   defectSize: number
@@ -44,16 +47,16 @@ interface Settings {
 
 // 初始化设置
 const settings = ref<Settings>({
-  rectWidth: 400,
-  rectHeight: 800,
-  canvasExpansion: 1.4,
+  rectWidth: 8.56,
+  rectHeight: 40.12,
+  canvasExpansion: 1.2,
   defectColor: '#ff0000',
-  defectSize: 3,
+  defectSize: 5,
   defects: [
-    { x: 50, y: 30 },
-    { x: -70, y: -40 },
-    { x: 0, y: 60 },
-    { x: 100, y: -80 }
+    { x: 50, y: 30, corner: 'top-left' },
+    { x: 70, y: 40, corner: 'top-right' },
+    { x: 100, y: 80, corner: 'bottom-left' },
+    { x: 60, y: 50, corner: 'bottom-right' }
   ]
 })
 </script>

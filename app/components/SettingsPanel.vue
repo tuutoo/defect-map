@@ -9,21 +9,23 @@
       </template>
 
       <div class="flex gap-4">
-        <UFormGroup label="宽度 (px)">
+        <UFormGroup label="宽度 (米)">
           <UInput
             v-model.number="localSettings.rectWidth"
             type="number"
-            :min="10"
-            :max="2000"
+            :min="0.1"
+            :max="100"
+            :step="0.01"
           />
         </UFormGroup>
 
-        <UFormGroup label="高度 (px)">
+        <UFormGroup label="高度 (米)">
           <UInput
             v-model.number="localSettings.rectHeight"
             type="number"
-            :min="10"
-            :max="2000"
+            :min="0.1"
+            :max="100"
+            :step="0.01"
           />
         </UFormGroup>
       </div>
@@ -102,17 +104,24 @@
           :key="index"
           class="flex items-center gap-2"
         >
+          <USelect
+            v-model="defect.corner"
+            :items="cornerOptions"
+            class="w-28"
+          />
           <UInput
             v-model.number="defect.x"
             type="number"
-            placeholder="X 坐标"
+            placeholder="X (cm)"
             class="flex-1"
+            :min="0"
           />
           <UInput
             v-model.number="defect.y"
             type="number"
-            placeholder="Y 坐标"
+            placeholder="Y (cm)"
             class="flex-1"
+            :min="0"
           />
           <UButton
             icon="i-lucide-trash-2"
@@ -135,11 +144,11 @@
         <h3 class="text-lg font-semibold">批量导入</h3>
       </template>
 
-      <UFormGroup label="JSON 格式导入" help="格式: [{ x: 10, y: 20 }, ...]">
+      <UFormGroup label="JSON 格式导入" help='格式: [{ x: 10, y: 20, corner: "top-left" }, ...]'>
         <UTextarea
           v-model="importText"
           :rows="5"
-          placeholder='[{"x": 10, "y": 20}, {"x": -15, "y": 30}]'
+          placeholder='[{"x": 10, "y": 20, "corner": "top-left"}, {"x": 15, "y": 30, "corner": "top-right"}]'
         />
       </UFormGroup>
 
@@ -156,14 +165,17 @@
 </template>
 
 <script setup lang="ts">
+type Corner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+
 interface Defect {
-  x: number
-  y: number
+  x: number // 厘米
+  y: number // 厘米
+  corner: Corner
 }
 
 interface Settings {
-  rectWidth: number
-  rectHeight: number
+  rectWidth: number // 米
+  rectHeight: number // 米
   canvasExpansion: number
   defectColor: string
   defectSize: number
@@ -186,12 +198,19 @@ const localSettings = computed({
 const color = ref('#FF0000')
 const chip = computed(() => ({ backgroundColor: color.value }))
 
+const cornerOptions = [
+  { value: 'top-left', label: '左上' },
+  { value: 'top-right', label: '右上' },
+  { value: 'bottom-left', label: '左下' },
+  { value: 'bottom-right', label: '右下' }
+]
+
 const importText = ref('')
 
 const addDefect = () => {
   localSettings.value = {
     ...localSettings.value,
-    defects: [...localSettings.value.defects, { x: 0, y: 0 }]
+    defects: [...localSettings.value.defects, { x: 0, y: 0, corner: 'top-left' as Corner }]
   }
 }
 
@@ -209,8 +228,12 @@ const importDefects = () => {
     const parsed = JSON.parse(importText.value)
     if (Array.isArray(parsed)) {
       const validDefects = parsed.filter(
-        (item) => typeof item.x === 'number' && typeof item.y === 'number'
-      )
+        (item) => typeof item.x === 'number' && typeof item.y === 'number' && item.corner
+      ).map(item => ({
+        x: item.x,
+        y: item.y,
+        corner: item.corner || 'top-left'
+      }))
       localSettings.value = {
         ...localSettings.value,
         defects: validDefects

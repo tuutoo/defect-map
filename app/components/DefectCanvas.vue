@@ -10,14 +10,17 @@
 </template>
 
 <script setup lang="ts">
+type Corner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+
 interface Defect {
-  x: number
-  y: number
+  x: number // 厘米
+  y: number // 厘米
+  corner: Corner
 }
 
 interface Props {
-  rectWidth: number
-  rectHeight: number
+  rectWidth: number // 米
+  rectHeight: number // 米
   defects: Defect[]
   canvasExpansion: number
   defectColor: string
@@ -25,8 +28,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  rectWidth: 100,
-  rectHeight: 100,
+  rectWidth: 8.56,
+  rectHeight: 40.12,
   defects: () => [],
   canvasExpansion: 1.4,
   defectColor: '#ff0000',
@@ -34,10 +37,25 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const canvasRef = ref<HTMLCanvasElement>()
+const containerRef = ref<HTMLElement>()
 
-// 计算画布尺寸
-const canvasWidth = computed(() => Math.round(props.rectWidth * props.canvasExpansion))
-const canvasHeight = computed(() => Math.round(props.rectHeight * props.canvasExpansion))
+// 计算画布尺寸 - 高度占满容器，宽度按比例
+const canvasHeight = ref(800)
+const canvasWidth = computed(() => {
+  // 根据长方形的宽高比计算画布宽度
+  const aspectRatio = props.rectWidth / props.rectHeight
+  return Math.round(canvasHeight.value * aspectRatio)
+})
+
+// 更新画布高度以适应容器
+const updateCanvasSize = () => {
+  if (canvasRef.value) {
+    const parent = canvasRef.value.parentElement
+    if (parent) {
+      canvasHeight.value = parent.clientHeight - 40 // 减去一些边距
+    }
+  }
+}
 
 // 绘制函数
 const draw = () => {
@@ -54,36 +72,49 @@ const draw = () => {
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-  // 计算长方形的位置（画布中心）
-  const centerX = canvas.width / 2
-  const centerY = canvas.height / 2
+  // 计算长方形在画布上的实际像素尺寸
+  // 长方形应该占据画布的 1/canvasExpansion 大小
+  const rectPixelHeight = canvasHeight.value / props.canvasExpansion
+  const rectPixelWidth = canvasWidth.value / props.canvasExpansion
+
+  // 长方形在画布上居中
+  const rectLeft = (canvas.width - rectPixelWidth) / 2
+  const rectTop = (canvas.height - rectPixelHeight) / 2
 
   // 绘制长方形
   ctx.strokeStyle = '#000000'
   ctx.lineWidth = 2
   ctx.beginPath()
-  ctx.rect(
-    centerX - props.rectWidth / 2,
-    centerY - props.rectHeight / 2,
-    props.rectWidth,
-    props.rectHeight
-  )
+  ctx.rect(rectLeft, rectTop, rectPixelWidth, rectPixelHeight)
   ctx.stroke()
 
-  // 绘制坐标系原点（可选，用于调试）
-  // ctx.fillStyle = '#0000ff'
-  // ctx.beginPath()
-  // ctx.arc(centerX, centerY, 3, 0, Math.PI * 2)
-  // ctx.fill()
+  // 计算比例：像素/厘米
+  const pixelPerCm = rectPixelWidth / (props.rectWidth * 100) // 米转厘米
 
   // 绘制疵点
   ctx.fillStyle = props.defectColor
   props.defects.forEach((defect) => {
-    // 将直角坐标系坐标转换为画布坐标
-    // 直角坐标系：原点在中心，y轴向上为正
-    // 画布坐标系：原点在左上角，y轴向下为正
-    const canvasX = centerX + defect.x
-    const canvasY = centerY - defect.y // 注意y轴方向相反
+    let canvasX: number, canvasY: number
+
+    // 根据角落位置计算坐标（相对于画布的四个角）
+    switch (defect.corner) {
+      case 'top-left':
+        canvasX = defect.x * pixelPerCm
+        canvasY = defect.y * pixelPerCm
+        break
+      case 'top-right':
+        canvasX = canvas.width - defect.x * pixelPerCm
+        canvasY = defect.y * pixelPerCm
+        break
+      case 'bottom-left':
+        canvasX = defect.x * pixelPerCm
+        canvasY = canvas.height - defect.y * pixelPerCm
+        break
+      case 'bottom-right':
+        canvasX = canvas.width - defect.x * pixelPerCm
+        canvasY = canvas.height - defect.y * pixelPerCm
+        break
+    }
 
     ctx.beginPath()
     ctx.arc(canvasX, canvasY, props.defectSize, 0, Math.PI * 2)
@@ -99,7 +130,8 @@ watch(
     props.defects,
     props.canvasExpansion,
     props.defectColor,
-    props.defectSize
+    props.defectSize,
+    canvasHeight.value
   ],
   () => {
     nextTick(() => draw())
@@ -107,8 +139,18 @@ watch(
   { deep: true }
 )
 
-// 初始化时绘制
+// 初始化时绘制和监听窗口大小变化
 onMounted(() => {
+  updateCanvasSize()
   draw()
+
+  window.addEventListener('resize', () => {
+    updateCanvasSize()
+    draw()
+  })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateCanvasSize)
 })
 </script>
