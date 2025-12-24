@@ -10,10 +10,11 @@
       <!-- 左侧画布区域 (70%) -->
       <div class="w-[70%] p-4 flex items-center justify-center overflow-auto">
         <DefectCanvas
+          :canvas-width="settings.canvasWidth"
+          :canvas-height="settings.canvasHeight"
           :rect-width="settings.rectWidth"
           :rect-height="settings.rectHeight"
           :defects="settings.defects"
-          :canvas-expansion="settings.canvasExpansion"
           :defect-color="settings.defectColor"
           :defect-size="settings.defectSize"
         />
@@ -37,9 +38,10 @@ interface Defect {
 }
 
 interface Settings {
+  canvasWidth: number // 米
+  canvasHeight: number // 米
   rectWidth: number // 米
   rectHeight: number // 米
-  canvasExpansion: number
   defectColor: string
   defectSize: number
   defects: Defect[]
@@ -47,16 +49,18 @@ interface Settings {
 
 // 初始化设置
 const settings = ref<Settings>({
+  canvasWidth: 12,
+  canvasHeight: 50,
   rectWidth: 8.56,
   rectHeight: 40.12,
-  canvasExpansion: 1.2,
   defectColor: '#ff0000',
-  defectSize: 5,
+  defectSize: 3,
   defects: [
     { x: 50, y: 30, corner: 'top-left' },
     { x: 70, y: 40, corner: 'top-right' },
     { x: 100, y: 80, corner: 'bottom-left' },
-    { x: 60, y: 50, corner: 'bottom-right' }
+    { x: 100, y: 200, corner: 'bottom-right' },
+    { x: 300, y: 500, corner: 'bottom-right' }
   ]
 })
 </script>

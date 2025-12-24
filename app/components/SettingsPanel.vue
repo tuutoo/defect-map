@@ -2,6 +2,40 @@
   <div class="space-y-6 p-6 bg-gray-50 h-full overflow-y-auto">
     <h2 class="text-xl font-bold text-gray-900">参数设置</h2>
 
+    <!-- 画布设置 -->
+    <UCard>
+      <template #header>
+        <h3 class="text-lg font-semibold">画布尺寸</h3>
+      </template>
+
+      <div class="flex gap-4">
+        <UFormGroup label="宽度 (米)" :error="canvasWidthError">
+          <UInput
+            v-model.number="tempCanvasWidth"
+            type="number"
+            :min="0.1"
+            :max="100"
+            :step="0.01"
+            @blur="validateCanvasWidth"
+          />
+        </UFormGroup>
+
+        <UFormGroup label="高度 (米)" :error="canvasHeightError">
+          <UInput
+            v-model.number="tempCanvasHeight"
+            type="number"
+            :min="0.1"
+            :max="100"
+            :step="0.01"
+            @blur="validateCanvasHeight"
+          />
+        </UFormGroup>
+      </div>
+      <template #footer>
+        <p class="text-xs text-gray-500">画布尺寸必须大于长方形尺寸</p>
+      </template>
+    </UCard>
+
     <!-- 长方形尺寸 -->
     <UCard>
       <template #header>
@@ -9,46 +43,28 @@
       </template>
 
       <div class="flex gap-4">
-        <UFormGroup label="宽度 (米)">
+        <UFormGroup label="宽度 (米)" :error="rectWidthError">
           <UInput
-            v-model.number="localSettings.rectWidth"
+            v-model.number="tempRectWidth"
             type="number"
             :min="0.1"
-            :max="100"
+            :max="localSettings.canvasWidth"
             :step="0.01"
+            @blur="validateRectWidth"
           />
         </UFormGroup>
 
-        <UFormGroup label="高度 (米)">
+        <UFormGroup label="高度 (米)" :error="rectHeightError">
           <UInput
-            v-model.number="localSettings.rectHeight"
+            v-model.number="tempRectHeight"
             type="number"
             :min="0.1"
-            :max="100"
+            :max="localSettings.canvasHeight"
             :step="0.01"
+            @blur="validateRectHeight"
           />
         </UFormGroup>
       </div>
-    </UCard>
-
-    <!-- 画布设置 -->
-    <UCard>
-      <template #header>
-        <h3 class="text-lg font-semibold">画布设置</h3>
-      </template>
-
-      <UFormGroup label="画布扩展比例">
-        <UInput
-          v-model.number="localSettings.canvasExpansion"
-          type="number"
-          :min="1"
-          :max="3"
-          :step="0.1"
-        />
-        <template #help>
-          画布大小 = 长方形尺寸 × 扩展比例
-        </template>
-      </UFormGroup>
     </UCard>
 
     <!-- 疵点设置 -->
@@ -174,9 +190,10 @@ interface Defect {
 }
 
 interface Settings {
+  canvasWidth: number // 米
+  canvasHeight: number // 米
   rectWidth: number // 米
   rectHeight: number // 米
-  canvasExpansion: number
   defectColor: string
   defectSize: number
   defects: Defect[]
@@ -197,6 +214,118 @@ const localSettings = computed({
 
 const color = ref('#FF0000')
 const chip = computed(() => ({ backgroundColor: color.value }))
+
+const toast = useToast()
+
+// 画布尺寸的临时值和错误信息
+const tempCanvasWidth = ref(props.modelValue.canvasWidth)
+const tempCanvasHeight = ref(props.modelValue.canvasHeight)
+const canvasWidthError = ref('')
+const canvasHeightError = ref('')
+
+// 长方形尺寸的临时值和错误信息
+const tempRectWidth = ref(props.modelValue.rectWidth)
+const tempRectHeight = ref(props.modelValue.rectHeight)
+const rectWidthError = ref('')
+const rectHeightError = ref('')
+
+// 监听 modelValue 变化，同步临时值
+watch(() => props.modelValue.canvasWidth, (newVal) => {
+  tempCanvasWidth.value = newVal
+})
+watch(() => props.modelValue.canvasHeight, (newVal) => {
+  tempCanvasHeight.value = newVal
+})
+watch(() => props.modelValue.rectWidth, (newVal) => {
+  tempRectWidth.value = newVal
+})
+watch(() => props.modelValue.rectHeight, (newVal) => {
+  tempRectHeight.value = newVal
+})
+
+// 校验画布宽度
+const validateCanvasWidth = () => {
+  canvasWidthError.value = ''
+  if (tempCanvasWidth.value <= localSettings.value.rectWidth) {
+    const errorMsg = '画布宽度必须大于长方形宽度'
+    canvasWidthError.value = errorMsg
+    toast.add({
+      title: '校验失败',
+      description: errorMsg,
+      color: 'error',
+      icon: 'i-lucide-circle-x'
+    })
+    tempCanvasWidth.value = localSettings.value.canvasWidth // 恢复原值
+  } else {
+    localSettings.value = {
+      ...localSettings.value,
+      canvasWidth: tempCanvasWidth.value
+    }
+  }
+}
+
+// 校验画布高度
+const validateCanvasHeight = () => {
+  canvasHeightError.value = ''
+  if (tempCanvasHeight.value <= localSettings.value.rectHeight) {
+    const errorMsg = '画布高度必须大于长方形高度'
+    canvasHeightError.value = errorMsg
+    toast.add({
+      title: '校验失败',
+      description: errorMsg,
+      color: 'error',
+      icon: 'i-lucide-circle-x'
+    })
+    tempCanvasHeight.value = localSettings.value.canvasHeight // 恢复原值
+  } else {
+    localSettings.value = {
+      ...localSettings.value,
+      canvasHeight: tempCanvasHeight.value
+    }
+  }
+}
+
+// 校验长方形宽度
+const validateRectWidth = () => {
+  rectWidthError.value = ''
+  if (tempRectWidth.value >= localSettings.value.canvasWidth) {
+    const errorMsg = '长方形宽度必须小于画布宽度'
+    rectWidthError.value = errorMsg
+    toast.add({
+      title: '校验失败',
+      description: errorMsg,
+      color: 'error',
+      icon: 'i-lucide-circle-x'
+    })
+    tempRectWidth.value = localSettings.value.rectWidth // 恢复原值
+  } else {
+    localSettings.value = {
+      ...localSettings.value,
+      rectWidth: tempRectWidth.value
+    }
+  }
+}
+
+// 校验长方形高度
+const validateRectHeight = () => {
+  rectHeightError.value = ''
+  if (tempRectHeight.value >= localSettings.value.canvasHeight) {
+    const errorMsg = '长方形高度必须小于画布高度'
+    rectHeightError.value = errorMsg
+    toast.add({
+      title: '校验失败',
+      description: errorMsg,
+      color: 'error',
+      icon: 'i-lucide-circle-x'
+    })
+    tempRectHeight.value = localSettings.value.rectHeight // 恢复原值
+  } else {
+    localSettings.value = {
+      ...localSettings.value,
+      rectHeight: tempRectHeight.value
+    }
+  }
+}
 
 const cornerOptions = [
   { value: 'top-left', label: '左上' },
