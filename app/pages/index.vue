@@ -16,7 +16,9 @@
           :rect-height="settings.rectHeight"
           :defects="settings.defects"
           :defect-color="settings.defectColor"
+          :defect-stroke-color="settings.defectStrokeColor"
           :defect-size="settings.defectSize"
+          :selected-defect-index="settings.selectedDefectIndex"
         />
       </div>
 
@@ -43,8 +45,10 @@ interface Settings {
   rectWidth: number // 米
   rectHeight: number // 米
   defectColor: string
+  defectStrokeColor: string
   defectSize: number
   defects: Defect[]
+  selectedDefectIndex: number | null
 }
 
 // 初始化设置
@@ -54,7 +58,9 @@ const settings = ref<Settings>({
   rectWidth: 8.56,
   rectHeight: 40.12,
   defectColor: '#ff0000',
+  defectStrokeColor: '#000000',
   defectSize: 3,
+  selectedDefectIndex: null,
   defects: [
     { x: 50, y: 30, corner: 'top-left' },
     { x: 70, y: 40, corner: 'top-right' },

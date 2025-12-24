@@ -73,28 +73,44 @@
         <h3 class="text-lg font-semibold">疵点设置</h3>
       </template>
 
-      <div class="flex gap-4">
-        <UFormGroup label="疵点颜色">
+      <div class="space-y-4">
+        <div class="flex gap-4">
+          <UFormGroup label="疵点颜色" class="flex-1">
+            <UPopover>
+              <UButton :label="color" color="neutral" variant="outline">
+                <template #leading>
+                  <span :style="chip" class="size-3 rounded-full" />
+                </template>
+              </UButton>
+
+              <template #content>
+                <UColorPicker v-model="color" class="p-2" />
+              </template>
+            </UPopover>
+          </UFormGroup>
+
+          <UFormGroup label="疵点大小 (半径px)" class="flex-1">
+            <UInput
+              v-model.number="localSettings.defectSize"
+              type="number"
+              :min="1"
+              :max="20"
+            />
+          </UFormGroup>
+        </div>
+
+        <UFormGroup label="疵点外框颜色">
           <UPopover>
-            <UButton :label="color" color="neutral" variant="outline">
+            <UButton :label="strokeColor" color="neutral" variant="outline">
               <template #leading>
-                <span :style="chip" class="size-3 rounded-full" />
+                <span :style="strokeChip" class="size-3 rounded-full" />
               </template>
             </UButton>
 
             <template #content>
-              <UColorPicker v-model="color" class="p-2" />
+              <UColorPicker v-model="strokeColor" class="p-2" />
             </template>
           </UPopover>
-        </UFormGroup>
-
-        <UFormGroup label="疵点大小 (半径px)">
-          <UInput
-            v-model.number="localSettings.defectSize"
-            type="number"
-            :min="1"
-            :max="20"
-          />
         </UFormGroup>
       </div>
     </UCard>
@@ -114,43 +130,90 @@
         </div>
       </template>
 
-      <div class="space-y-3">
-        <div
-          v-for="(defect, index) in localSettings.defects"
-          :key="index"
-          class="flex items-center gap-2"
+      <div v-if="localSettings.defects.length > 0">
+        <UTable
+          v-model:row-selection="rowSelection"
+          :data="defectTableRows"
+          :columns="defectColumns"
+          @select="onSelectRow"
         >
-          <USelect
-            v-model="defect.corner"
-            :items="cornerOptions"
-            class="w-28"
-          />
-          <UInput
-            v-model.number="defect.x"
-            type="number"
-            placeholder="X (cm)"
-            class="flex-1"
-            :min="0"
-          />
-          <UInput
-            v-model.number="defect.y"
-            type="number"
-            placeholder="Y (cm)"
-            class="flex-1"
-            :min="0"
-          />
-          <UButton
-            icon="i-lucide-trash-2"
-            color="error"
-            variant="ghost"
-            size="sm"
-            @click="removeDefect(index)"
-          />
-        </div>
+          <template #corner-cell="{ row }">
+            <div v-if="isEditingRow(row.original.id)">
+              <USelect
+                v-model="editingCorner"
+                :items="cornerOptions"
+                size="xs"
+                class="w-24"
+              />
+            </div>
+            <div v-else>
+              {{ row.original.corner }}
+            </div>
+          </template>
 
-        <div v-if="localSettings.defects.length === 0" class="text-gray-500 text-sm text-center py-4">
-          暂无疵点，点击上方按钮添加
-        </div>
+          <template #x-cell="{ row }">
+            <div v-if="isEditingRow(row.original.id)">
+              <UInput
+                v-model.number="editingX"
+                type="number"
+                size="xs"
+                class="w-24"
+              />
+            </div>
+            <div v-else>
+              {{ row.original.x }}
+            </div>
+          </template>
+
+          <template #y-cell="{ row }">
+            <div v-if="isEditingRow(row.original.id)">
+              <UInput
+                v-model.number="editingY"
+                type="number"
+                size="xs"
+                class="w-24"
+              />
+            </div>
+            <div v-else>
+              {{ row.original.y }}
+            </div>
+          </template>
+
+          <template #action-cell="{ row }">
+            <div v-if="isEditingRow(row.original.id)" class="flex gap-1">
+              <UButton icon="i-lucide-check" size="xs" color="success" @click.stop="saveEdit" />
+              <UButton icon="i-lucide-x" size="xs" color="neutral" variant="ghost" @click.stop="cancelEdit" />
+            </div>
+            <UDropdownMenu v-else :items="[
+              [
+                {
+                  label: '编辑',
+                  icon: 'i-lucide-edit',
+                  onSelect: () => startEditRow(row.original.id)
+                }
+              ],
+              [
+                {
+                  label: '删除',
+                  icon: 'i-lucide-trash-2',
+                  color: 'error',
+                  onSelect: () => removeDefect(parseInt(row.original.id))
+                }
+              ]
+            ]">
+              <UButton
+                icon="i-lucide-ellipsis-vertical"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+              />
+            </UDropdownMenu>
+          </template>
+        </UTable>
+      </div>
+
+      <div v-else class="text-gray-500 text-sm text-center py-4">
+        暂无疵点，点击上方按钮添加
       </div>
     </UCard>
 
@@ -195,8 +258,19 @@ interface Settings {
   rectWidth: number // 米
   rectHeight: number // 米
   defectColor: string
+  defectStrokeColor: string
   defectSize: number
   defects: Defect[]
+  selectedDefectIndex: number | null
+}
+
+interface RowData {
+  id: string
+  no: number
+  corner: string
+  x: number
+  y: number
+  actions: string
 }
 
 const props = defineProps<{
@@ -214,8 +288,189 @@ const localSettings = computed({
 
 const color = ref('#FF0000')
 const chip = computed(() => ({ backgroundColor: color.value }))
+const strokeColor = ref('#000000')
+const strokeChip = computed(() => ({ backgroundColor: strokeColor.value }))
 
 const toast = useToast()
+
+// 表格列定义
+const defectColumns = [
+  {
+    accessorKey: 'no' as const,
+    header: '序号'
+  },
+  {
+    accessorKey: 'corner' as const,
+    header: '位置'
+  },
+  {
+    accessorKey: 'x' as const,
+    header: 'X (cm)'
+  },
+  {
+    accessorKey: 'y' as const,
+    header: 'Y (cm)'
+  },
+  {
+    id: 'action' as const,
+    header: '操作',
+  }
+]
+
+// 表格行数据
+const defectTableRows = computed<RowData[]>(() =>
+  localSettings.value.defects.map((defect, index): RowData => ({
+    id: index.toString(), // 必须有 id 字段用于行选择
+    no: index + 1,
+    corner: cornerOptions.find(opt => opt.value === defect.corner)?.label || '',
+    x: defect.x,
+    y: defect.y,
+    actions: '' // 占位符，用于删除按钮列
+  }))
+)
+
+// 行选择状态
+const rowSelection = ref<Record<string, boolean>>({})
+
+// 编辑状态（存储正在编辑的行 ID）
+const editingRowId = ref<string | null>(null)
+const editingCorner = ref<Corner>('top-left')
+const editingX = ref<number>(0)
+const editingY = ref<number>(0)
+
+// 监听选中状态变化
+watch(rowSelection, (newSelection) => {
+  const selectedIds = Object.keys(newSelection).filter(id => newSelection[id])
+  if (selectedIds.length > 0 && selectedIds[0]) {
+    const index = parseInt(selectedIds[0])
+    localSettings.value = {
+      ...localSettings.value,
+      selectedDefectIndex: index
+    }
+  } else {
+    localSettings.value = {
+      ...localSettings.value,
+      selectedDefectIndex: null
+    }
+  }
+}, { deep: true })
+
+// 处理行选择（单选）
+function onSelectRow(e: Event, row: { id: string }) {
+  // 如果正在编辑，不处理选择
+  if (editingRowId.value) return
+
+  const rowId = row.id
+  const isSelected = rowSelection.value[rowId]
+
+  // 清空所有选中
+  rowSelection.value = {}
+
+  // 如果之前没有选中，则选中当前行
+  if (!isSelected) {
+    rowSelection.value[rowId] = true
+  }
+}
+
+// 开始编辑行
+function startEditRow(rowId: string) {
+  const index = parseInt(rowId)
+  const defect = localSettings.value.defects[index]
+  if (defect) {
+    editingRowId.value = rowId
+    editingCorner.value = defect.corner
+    editingX.value = defect.x
+    editingY.value = defect.y
+  }
+}
+
+// 保存编辑
+function saveEdit() {
+  if (!editingRowId.value) return
+
+  const index = parseInt(editingRowId.value)
+  const newDefects = [...localSettings.value.defects]
+  if (newDefects[index]) {
+    newDefects[index] = {
+      corner: editingCorner.value,
+      x: editingX.value,
+      y: editingY.value
+    }
+    localSettings.value = {
+      ...localSettings.value,
+      defects: newDefects
+    }
+  }
+
+  cancelEdit()
+}
+
+// 取消编辑
+function cancelEdit() {
+  editingRowId.value = null
+}
+
+// 判断是否正在编辑
+function isEditingRow(rowId: string) {
+  return editingRowId.value === rowId
+}
+
+// 更新疵点数据的辅助方法
+const updateDefectCorner = (index: number, value: Corner) => {
+  const newDefects = [...localSettings.value.defects]
+  if (newDefects[index]) {
+    newDefects[index].corner = value
+    localSettings.value = {
+      ...localSettings.value,
+      defects: newDefects
+    }
+  }
+}
+
+const updateDefectX = (index: number, value: number) => {
+  const newDefects = [...localSettings.value.defects]
+  if (newDefects[index]) {
+    newDefects[index].x = value
+    localSettings.value = {
+      ...localSettings.value,
+      defects: newDefects
+    }
+  }
+}
+
+const updateDefectY = (index: number, value: number) => {
+  const newDefects = [...localSettings.value.defects]
+  if (newDefects[index]) {
+    newDefects[index].y = value
+    localSettings.value = {
+      ...localSettings.value,
+      defects: newDefects
+    }
+  }
+}
+
+// 同步颜色变化
+watch(color, (newColor) => {
+  localSettings.value = {
+    ...localSettings.value,
+    defectColor: newColor
+  }
+})
+
+watch(strokeColor, (newColor) => {
+  localSettings.value = {
+    ...localSettings.value,
+    defectStrokeColor: newColor
+  }
+})
+
+// 监听外部选中状态变化
+watch(() => props.modelValue.defectColor, (newVal) => {
+  color.value = newVal
+})
+watch(() => props.modelValue.defectStrokeColor, (newVal) => {
+  strokeColor.value = newVal
+})
 
 // 画布尺寸的临时值和错误信息
 const tempCanvasWidth = ref(props.modelValue.canvasWidth)
@@ -337,10 +592,16 @@ const cornerOptions = [
 const importText = ref('')
 
 const addDefect = () => {
+  const newDefects = [...localSettings.value.defects, { x: 0, y: 0, corner: 'top-left' as Corner }]
   localSettings.value = {
     ...localSettings.value,
-    defects: [...localSettings.value.defects, { x: 0, y: 0, corner: 'top-left' as Corner }]
+    defects: newDefects
   }
+  // 自动进入新行的编辑模式
+  nextTick(() => {
+    const newIndex = newDefects.length - 1
+    startEditRow(newIndex.toString())
+  })
 }
 
 const removeDefect = (index: number) => {

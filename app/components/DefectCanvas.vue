@@ -25,7 +25,9 @@ interface Props {
   rectHeight: number // 米
   defects: Defect[]
   defectColor: string
+  defectStrokeColor: string
   defectSize: number
+  selectedDefectIndex: number | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -35,7 +37,9 @@ const props = withDefaults(defineProps<Props>(), {
   rectHeight: 40.12,
   defects: () => [],
   defectColor: '#ff0000',
-  defectSize: 5
+  defectStrokeColor: '#000000',
+  defectSize: 5,
+  selectedDefectIndex: null
 })
 
 const canvasRef = ref<HTMLCanvasElement>()
@@ -96,8 +100,7 @@ const draw = () => {
   ctx.stroke()
 
   // 绘制疵点
-  ctx.fillStyle = props.defectColor
-  props.defects.forEach((defect) => {
+  props.defects.forEach((defect, index) => {
     let canvasX: number, canvasY: number
 
     // 根据角落位置计算坐标（相对于画布的四个角）
@@ -120,9 +123,20 @@ const draw = () => {
         break
     }
 
+    // 绘制疵点填充
+    ctx.fillStyle = props.defectColor
     ctx.beginPath()
     ctx.arc(canvasX, canvasY, props.defectSize, 0, Math.PI * 2)
     ctx.fill()
+
+    // 如果是选中的疵点，绘制外框高亮
+    if (index === props.selectedDefectIndex) {
+      ctx.strokeStyle = props.defectStrokeColor
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.arc(canvasX, canvasY, props.defectSize + 2, 0, Math.PI * 2)
+      ctx.stroke()
+    }
   })
 }
 
@@ -135,7 +149,9 @@ watch(
     props.rectHeight,
     props.defects,
     props.defectColor,
+    props.defectStrokeColor,
     props.defectSize,
+    props.selectedDefectIndex,
     canvasPixelHeight.value
   ],
   () => {
