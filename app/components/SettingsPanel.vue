@@ -73,7 +73,7 @@
         <h3 class="text-lg font-semibold">疵点设置</h3>
       </template>
 
-      <div class="space-y-4">
+      <div class="flex gap-4">
         <div class="flex gap-4">
           <UFormGroup label="疵点颜色" class="flex-1">
             <UPopover>

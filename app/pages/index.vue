@@ -7,8 +7,8 @@
 
     <!-- 主内容区 -->
     <div class="flex-1 flex overflow-hidden">
-      <!-- 左侧画布区域 (70%) -->
-      <div class="w-[70%] p-4 flex items-center justify-center overflow-auto">
+      <!-- 左侧画布区域 (60%) -->
+      <div class="w-[60%] p-4 flex items-center justify-center overflow-auto">
         <DefectCanvas
           :canvas-width="settings.canvasWidth"
           :canvas-height="settings.canvasHeight"
@@ -22,8 +22,8 @@
         />
       </div>
 
-      <!-- 右侧参数设置区域 (30%) -->
-      <div class="w-[30%] border-l border-gray-200">
+      <!-- 右侧参数设置区域 (40%) -->
+      <div class="w-[40%] border-l border-gray-200">
         <SettingsPanel v-model="settings" />
       </div>
     </div>
