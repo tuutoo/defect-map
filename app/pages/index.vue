@@ -64,11 +64,11 @@ const settings = ref<Settings>({
   defects: [
     { x: 50, y: 30, corner: 'top-left' },
     { x: 70, y: 40, corner: 'top-right' },
-    { x: 100, y: 80, corner: 'bottom-left' },
-    { x: 100, y: 80, corner: 'bottom-left' },
-    { x: 100, y: 80, corner: 'bottom-left' },
-    { x: 100, y: 80, corner: 'bottom-left' },
-    { x: 100, y: 200, corner: 'bottom-right' },
+    { x: 100, y: 180, corner: 'top-right' },
+    { x: 120, y: 180, corner: 'bottom-left' },
+    { x: 200, y: 380, corner: 'bottom-left' },
+    { x: 60, y: 180, corner: 'bottom-right' },
+    { x: 200, y: 200, corner: 'bottom-right' },
     { x: 300, y: 500, corner: 'bottom-right' }
   ]
 })
