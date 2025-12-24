@@ -65,6 +65,9 @@ const settings = ref<Settings>({
     { x: 50, y: 30, corner: 'top-left' },
     { x: 70, y: 40, corner: 'top-right' },
     { x: 100, y: 80, corner: 'bottom-left' },
+    { x: 100, y: 80, corner: 'bottom-left' },
+    { x: 100, y: 80, corner: 'bottom-left' },
+    { x: 100, y: 80, corner: 'bottom-left' },
     { x: 100, y: 200, corner: 'bottom-right' },
     { x: 300, y: 500, corner: 'bottom-right' }
   ]
