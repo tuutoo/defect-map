@@ -1,109 +1,117 @@
 <template>
   <div class="space-y-6 p-6 bg-gray-50 h-full overflow-y-auto">
-    <h2 class="text-xl font-bold text-gray-900">参数设置</h2>
-
     <!-- 可折叠的参数设置 -->
     <UAccordion
-      type="multiple"
-      :items="accordionItems"
+      :items="[
+        {
+          label: '参数设置',
+          icon: 'i-lucide-settings',
+          slot: 'settings',
+          defaultOpen: false
+        }
+      ]"
     >
-      <template #canvas>
-        <div class="p-4 space-y-4">
-          <div class="flex gap-4">
-            <UFormGroup label="宽度 (米)" :error="canvasWidthError">
-              <UInput
-                v-model.number="tempCanvasWidth"
-                type="number"
-                :min="0.1"
-                :max="localSettings.canvasWidth"
-                :step="0.01"
-                @blur="validateCanvasWidth"
-              />
-            </UFormGroup>
+      <template #settings>
+        <div class="space-y-4 p-4">
+          <!-- 画布设置 -->
+          <div class="space-y-3">
+            <h3 class="text-base font-semibold text-gray-900">画布尺寸</h3>
+            <div class="flex gap-4">
+              <UFormGroup label="宽度 (米)" :error="canvasWidthError">
+                <UInput
+                  v-model.number="tempCanvasWidth"
+                  type="number"
+                  :min="0.1"
+                  :max="localSettings.canvasWidth"
+                  :step="0.01"
+                  @blur="validateCanvasWidth"
+                />
+              </UFormGroup>
 
-            <UFormGroup label="高度 (米)" :error="canvasHeightError">
-              <UInput
-                v-model.number="tempCanvasHeight"
-                type="number"
-                :min="0.1"
-                :max="localSettings.canvasHeight"
-                :step="0.01"
-                @blur="validateCanvasHeight"
-              />
-            </UFormGroup>
+              <UFormGroup label="高度 (米)" :error="canvasHeightError">
+                <UInput
+                  v-model.number="tempCanvasHeight"
+                  type="number"
+                  :min="0.1"
+                  :max="localSettings.canvasHeight"
+                  :step="0.01"
+                  @blur="validateCanvasHeight"
+                />
+              </UFormGroup>
+            </div>
+            <p class="text-xs text-gray-500">画布尺寸必须大于长方形尺寸</p>
           </div>
-          <p class="text-xs text-gray-500">画布尺寸必须大于长方形尺寸</p>
-        </div>
-      </template>
 
-      <template #rect>
-        <div class="p-4">
-          <div class="flex gap-4">
-            <UFormGroup label="宽度 (米)" :error="rectWidthError">
-              <UInput
-                v-model.number="tempRectWidth"
-                type="number"
-                :min="0.1"
-                :max="localSettings.canvasWidth"
-                :step="0.01"
-                @blur="validateRectWidth"
-              />
-            </UFormGroup>
+          <!-- 长方形尺寸 -->
+          <div class="space-y-3 pt-4 border-t border-gray-200">
+            <h3 class="text-base font-semibold text-gray-900">长方形尺寸</h3>
+            <div class="flex gap-4">
+              <UFormGroup label="宽度 (米)" :error="rectWidthError">
+                <UInput
+                  v-model.number="tempRectWidth"
+                  type="number"
+                  :min="0.1"
+                  :max="localSettings.canvasWidth"
+                  :step="0.01"
+                  @blur="validateRectWidth"
+                />
+              </UFormGroup>
 
-            <UFormGroup label="高度 (米)" :error="rectHeightError">
-              <UInput
-                v-model.number="tempRectHeight"
-                type="number"
-                :min="0.1"
-                :max="localSettings.canvasHeight"
-                :step="0.01"
-                @blur="validateRectHeight"
-              />
-            </UFormGroup>
+              <UFormGroup label="高度 (米)" :error="rectHeightError">
+                <UInput
+                  v-model.number="tempRectHeight"
+                  type="number"
+                  :min="0.1"
+                  :max="localSettings.canvasHeight"
+                  :step="0.01"
+                  @blur="validateRectHeight"
+                />
+              </UFormGroup>
+            </div>
           </div>
-        </div>
-      </template>
 
-      <template #defect>
-        <div class="flex gap-4">
-          <div class="flex gap-4">
-            <UFormGroup label="疵点颜色" class="flex-1">
-              <UPopover>
-                <UButton :label="color" color="neutral" variant="outline">
-                  <template #leading>
-                    <span :style="chip" class="size-3 rounded-full" />
+          <!-- 疵点设置 -->
+          <div class="space-y-3 pt-4 border-t border-gray-200">
+            <h3 class="text-base font-semibold text-gray-900">疵点设置</h3>
+            <div class="flex gap-4">
+              <UFormGroup label="疵点颜色" >
+                <UPopover>
+                  <UButton :label="color" color="neutral" variant="outline">
+                    <template #leading>
+                      <span :style="chip" class="size-3 rounded-full" />
+                    </template>
+                  </UButton>
+
+                  <template #content>
+                    <UColorPicker v-model="color" class="p-2" />
                   </template>
-                </UButton>
+                </UPopover>
+              </UFormGroup>
 
-                <template #content>
-                  <UColorPicker v-model="color" class="p-2" />
-                </template>
-              </UPopover>
-            </UFormGroup>
+              <UFormGroup label="疵点大小 (半径px)">
+                <UInput
+                  v-model.number="localSettings.defectSize"
+                  type="number"
+                  :min="1"
+                  :max="20"
+                />
+              </UFormGroup>
 
-            <UFormGroup label="疵点大小 (半径px)" class="flex-1">
-              <UInput
-                v-model.number="localSettings.defectSize"
-                type="number"
-                :min="1"
-                :max="20"
-              />
-            </UFormGroup>
+              <UFormGroup label="疵点外框颜色">
+                <UPopover>
+                  <UButton :label="strokeColor" color="neutral" variant="outline">
+                    <template #leading>
+                      <span :style="strokeChip" class="size-3 rounded-full" />
+                    </template>
+                  </UButton>
+
+                  <template #content>
+                    <UColorPicker v-model="strokeColor" class="p-2" />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+            </div>
           </div>
-
-          <UFormGroup label="疵点外框颜色">
-            <UPopover>
-              <UButton :label="strokeColor" color="neutral" variant="outline">
-                <template #leading>
-                  <span :style="strokeChip" class="size-3 rounded-full" />
-                </template>
-              </UButton>
-
-              <template #content>
-                <UColorPicker v-model="strokeColor" class="p-2" />
-              </template>
-            </UPopover>
-          </UFormGroup>
         </div>
       </template>
     </UAccordion>
@@ -215,7 +223,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn, TableRow, AccordionItem } from '@nuxt/ui'
+import type { TableColumn, TableRow } from '@nuxt/ui'
 
 type Corner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 
@@ -258,27 +266,6 @@ const localSettings = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
-
-const accordionItems = ref<AccordionItem[]>([
-  {
-    label: '画布尺寸',
-    icon: 'i-lucide-layout-template',
-    slot: 'canvas',
-    defaultOpen: false
-  },
-  {
-    label: '长方形尺寸',
-    icon: 'i-lucide-square',
-    slot: 'rect',
-    defaultOpen: false
-  },
-  {
-    label: '疵点设置',
-    icon: 'i-lucide-palette',
-    slot: 'defect',
-    defaultOpen: false
-  }
-])
 
 const color = ref('#FF0000')
 const chip = computed(() => ({ backgroundColor: color.value }))
