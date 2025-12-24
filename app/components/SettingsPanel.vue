@@ -244,7 +244,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn } from '@nuxt/ui'
+import type { TableColumn, TableRow } from '@nuxt/ui'
 
 type Corner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 
@@ -358,11 +358,11 @@ watch(rowSelection, (newSelection) => {
 }, { deep: true })
 
 // 处理行选择（单选）
-function onSelectRow(e: Event, row: { id: string }) {
+function onSelectRow(e: Event, row: TableRow<RowData>) {
   // 如果正在编辑，不处理选择
   if (editingRowId.value) return
 
-  const rowId = row.id
+  const rowId = row.original.id
   const isSelected = rowSelection.value[rowId]
 
   // 清空所有选中
