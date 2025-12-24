@@ -244,6 +244,8 @@
 </template>
 
 <script setup lang="ts">
+import type { TableColumn } from '@nuxt/ui'
+
 type Corner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 
 interface Defect {
@@ -294,26 +296,26 @@ const strokeChip = computed(() => ({ backgroundColor: strokeColor.value }))
 const toast = useToast()
 
 // 表格列定义
-const defectColumns = [
+const defectColumns: TableColumn<RowData>[] = [
   {
-    accessorKey: 'no' as const,
+    accessorKey: 'no',
     header: '序号'
   },
   {
-    accessorKey: 'corner' as const,
+    accessorKey: 'corner',
     header: '位置'
   },
   {
-    accessorKey: 'x' as const,
+    accessorKey: 'x',
     header: 'X (cm)'
   },
   {
-    accessorKey: 'y' as const,
+    accessorKey: 'y',
     header: 'Y (cm)'
   },
   {
-    id: 'action' as const,
-    header: '操作',
+    id: 'action',
+    header: '操作'
   }
 ]
 
