@@ -12,7 +12,7 @@
       ]"
     >
       <template #settings>
-        <div class="space-y-4 p-4">
+        <div class="space-y-4 p-3">
           <!-- 画布设置 -->
           <div class="space-y-3">
             <h3 class="text-base font-semibold text-gray-900">画布尺寸</h3>
@@ -43,7 +43,7 @@
           </div>
 
           <!-- 长方形尺寸 -->
-          <div class="space-y-3 pt-4 border-t border-gray-200">
+          <div class="space-y-3 pt-3 border-t border-gray-200">
             <h3 class="text-base font-semibold text-gray-900">长方形尺寸</h3>
             <div class="flex gap-4">
               <UFormGroup label="宽度 (米)" :error="rectWidthError">
@@ -71,7 +71,7 @@
           </div>
 
           <!-- 疵点设置 -->
-          <div class="space-y-3 pt-4 border-t border-gray-200">
+          <div class="space-y-3 pt-3 border-t border-gray-200">
             <h3 class="text-base font-semibold text-gray-900">疵点设置</h3>
             <div class="flex gap-4">
               <UFormGroup label="疵点颜色" >
