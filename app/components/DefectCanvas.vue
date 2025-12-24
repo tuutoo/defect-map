@@ -99,7 +99,7 @@ const draw = () => {
   ctx.rect(rectLeft, rectTop, rectPixelWidth, rectPixelHeight)
   ctx.stroke()
 
-  // 绘制疵点
+  // 绘制疵点序号
   props.defects.forEach((defect, index) => {
     let canvasX: number, canvasY: number
 
@@ -123,18 +123,30 @@ const draw = () => {
         break
     }
 
-    // 绘制疵点填充
-    ctx.fillStyle = props.defectColor
-    ctx.beginPath()
-    ctx.arc(canvasX, canvasY, props.defectSize, 0, Math.PI * 2)
-    ctx.fill()
+    const defectNumber = (index + 1).toString()
 
-    // 如果是选中的疵点，绘制外框高亮
+    // 设置字体样式
+    ctx.font = 'bold 14px Arial'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+
+    // 绘制序号文本（使用疵点颜色）
+    ctx.fillStyle = props.defectColor
+    ctx.fillText(defectNumber, canvasX, canvasY)
+
+    // 如果是选中的疵点，在文字外围绘制圆圈
     if (index === props.selectedDefectIndex) {
+      // 测量文本尺寸，动态计算圆圈半径
+      const textMetrics = ctx.measureText(defectNumber)
+      const textWidth = textMetrics.width
+      const textHeight = 14 // 字体大小
+      // 圆圈半径为文本对角线的一半再加上一点点边距
+      const circleRadius = Math.sqrt(textWidth * textWidth + textHeight * textHeight) / 2
+
       ctx.strokeStyle = props.defectStrokeColor
       ctx.lineWidth = 1
       ctx.beginPath()
-      ctx.arc(canvasX, canvasY, props.defectSize + 2, 0, Math.PI * 2)
+      ctx.arc(canvasX, canvasY, circleRadius, 0, Math.PI * 2)
       ctx.stroke()
     }
   })
